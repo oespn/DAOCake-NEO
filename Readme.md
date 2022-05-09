@@ -1,0 +1,4 @@
+
+
+Terminal:
+> dotnet nccs

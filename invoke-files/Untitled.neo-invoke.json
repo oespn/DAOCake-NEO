@@ -1,0 +1,79 @@
+[
+  {
+    "contract": "DAOCakeContract",
+    "operation": "createTransaction",
+    "args": [
+      "@dao_org1",
+      "@alice",
+      100,
+      1,
+      "This is the proof",
+      "44488003b622cf94",
+      ""
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "getTransNotify",
+    "args": [
+      "@dao_org1",
+      "44488003b622cf94"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "getTransObj",
+    "args": [
+      "@dao_org1",
+      "44488003b622cf94"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owings",
+    "args": [
+      "@dao_org1"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owingsByOrg",
+    "args": [
+      "@dao_org1"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owingsToUser",
+    "args": [
+      "@dao_org1",
+      "@alice"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "vote",
+    "args": [
+      "44488003b622cf94",
+      1
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "createOrganisation",
+    "args": [
+      "work3dao",
+      "@bob",
+      "Bob",
+      "55588003b622cf94"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "addMember",
+    "args": [
+      "55588003b622cf94",
+      "Fred"
+    ]
+  }
+]

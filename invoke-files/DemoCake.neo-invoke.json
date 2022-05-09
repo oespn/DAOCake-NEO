@@ -1,0 +1,108 @@
+[
+  {
+    "contract": "DAOCakeContract",
+    "operation": "createOrganisation",
+    "args": [
+      "DAO 1",
+      "@bob",
+      "bob",
+      "aaaabbbbcccceeee",
+      "ffffbbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "addMemberOfOrg",
+    "args": [
+      "aaaabbbbcccceeee",
+      "alice",
+      "eeeebbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "membersOfOrg",
+    "args": [
+      "aaaabbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "createTransaction",
+    "args": [
+      "aaaabbbbcccceeee",
+      "@bob",
+      100,
+      23213,
+      "ext5214",
+      "55588003b622cf95"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owingsByOrg",
+    "args": [
+      "aaaabbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owingsToUser",
+    "args": [
+      "aaaabbbbcccceeee",
+      "@bob"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "orgsOfMemberByUser",
+    "args": [
+      "@bob"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "getMemberObj",
+    "args": [
+      "ffffbbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "isMember",
+    "args": [
+      "@alice",
+      0
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "vote",
+    "args": [
+      "eeeebbbbcccceeee",
+      true
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "orgsOfMember",
+    "args": [
+      "eeeebbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "owingsByOrg",
+    "args": [
+      "aaaabbbbcccceeee"
+    ]
+  },
+  {
+    "contract": "DAOCakeContract",
+    "operation": "vote",
+    "args": [
+      "55588003b622cf95",
+      1
+    ]
+  }
+]

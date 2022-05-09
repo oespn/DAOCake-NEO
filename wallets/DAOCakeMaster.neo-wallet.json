@@ -1,0 +1,29 @@
+{
+  "name": "DAOCakeMaster",
+  "version": "1.0",
+  "scrypt": {
+    "n": 16384,
+    "r": 8,
+    "p": 8,
+    "size": 64
+  },
+  "accounts": [
+    {
+      "address": "NUzrMjrE2ne57aMfn2jfu3ZB4ToKNC5goQ",
+      "label": "Default account",
+      "isDefault": true,
+      "lock": false,
+      "key": "6PYW68ByDf7C9JUqy9yCm12GNDHXm1AwKrgHqqD2HkPFqdCmuhu4RA8qcg",
+      "contract": {
+        "script": "DCECI/bI9/PbOrbu/BebfG41LElDc13ibMB13hC4PEaTkG5BVuezJw==",
+        "parameters": [
+          {
+            "name": "signature",
+            "type": "Signature"
+          }
+        ],
+        "deployed": false
+      }
+    }
+  ]
+}
