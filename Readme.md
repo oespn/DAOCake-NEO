@@ -16,6 +16,11 @@ Run the steps one by one in the DemoCake.neo-invoke.json
 Watch the video for a guided tour: https://www.loom.com/share/0cc08b09190a42ee9c3199068ba22e11
 
 
+## Contract on TestNet
+
+DAOCake was deployed to Neo N3 TestNet.  
+Contract Script hash: 0xcae42e900cbbb554c3a478201b65bf0266fe2bcf
+
 
 ## Stay tuned
 
