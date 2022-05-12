@@ -115,10 +115,11 @@ namespace DAOCake
 
         // Security: Anyone can create an organsation (DAO)
         // The organisation has no value until it has members
-        // TODO: Make userId come from Tx.Sender 
-        public static void CreateOrganisation(string name, UInt160 user, string creatorName, ByteString? orgId, ByteString? memberId)
+        public static void CreateOrganisation(string name, string creatorName, ByteString? orgId, ByteString? memberId)
         {
             var token = Runtime.CallingScriptHash;
+
+            UInt160 user = Tx.Sender;
 
             if (orgId != null)
             {
@@ -149,7 +150,6 @@ namespace DAOCake
             var mRow = new Member();
             mRow.Name = creatorName;
             mRow.User = user;
-            //mRow.OrgId = orgId;
             mRow.Decision = DecisionStatus.Approved; // Creator is automatcially approved without need for Vote
             
             if (memberId != null)
@@ -177,47 +177,42 @@ namespace DAOCake
             memberUserMap.Put(user + memberId, 0);   
 
             OnNewOrgMember(orgId, memberId, creatorName);
-            OnNewOrganisation(orgId, creatorName, 1); //voteDecisionCount, voteForRequired);
+            OnNewOrganisation(orgId, creatorName, 1); 
         }
 
-
-        public static void UpdateMemberVoteRules(ByteString orgId, UInt16 voteForRequired) //ROADMAP: UInt16? voteDecisionCount, 
+        #region Internal functions called as a result of voting outcomes
+        private static void updateMemberVoteRules(ByteString orgId, UInt16 voteForRequired) 
         {
             if (orgId is null) throw new ArgumentException(nameof(orgId));
            
-           // Temporary security:  See Roadmap.
-            ByteString owner = ContractMetadata.Get("Owner");
-            if (!Tx.Sender.Equals(owner))
-            {
-                 //ROADMAP: this function will to be made internal
-                 // _updateMemberVoteRules will be called when sufficient votes are met according to current Org rules
+            // Fallback security: Contract owner can override voting rules
+            // ByteString owner = ContractMetadata.Get("Owner");
+            // if (!Tx.Sender.Equals(owner))
+            // {
+            //      //ROADMAP: this function will to be made internal
+            //      // _updateMemberVoteRules will be called when sufficient votes are met according to current Org rules
 
-                throw new Exception("Only the contract owner can do this");
-            }
+            //     throw new Exception("Only the contract owner can do this");
+            // }
 
             StorageMap orgMap = new(Storage.CurrentContext, Prefix_Orgs);
             var serializedOrg = orgMap.Get(orgId);
             if (serializedOrg == null) throw new Exception("specified orgId does not exists");
 
             var org = (Organisation)StdLib.Deserialize(serializedOrg);
-            // if (voteDecisionCount == null)
-            // {
-            //     voteDecisionCount = (UInt16)voteDecisionCount;
-            // }
-            //ROADMAP: org.VoteDecisionCount = (UInt16)voteDecisionCount;
+
             org.VoteForRequired = voteForRequired;
 
             orgMap.Put(orgId, StdLib.Serialize(org));
             
-            OnUpdateOrganisation(orgId, voteForRequired); //ROADMAP: (UInt16)voteDecisionCount,
+            OnUpdateOrganisation(orgId, voteForRequired); 
         }        
 
-        // Security: only accessible internally
-        //** PRIVATE INTERNAL FUNCTION
-        public static void UpdateMemberAsApproved(ByteString orgId, ByteString transMemberId)
+
+        private static void updateMemberAsApproved(ByteString orgId, ByteString transMemberId)
         {
             var memberId = transMemberId;
-            var member = (Member)GetMemberObj(transMemberId);
+            var member = (Member)getMemberObj(transMemberId);
 
 
             StorageMap membersMap = new(Storage.CurrentContext, Prefix_Members);
@@ -236,9 +231,8 @@ namespace DAOCake
 
             OnNewOrgMember(orgId, memberId, "Approved:"+ member.Name);
         }
+        #endregion
 
-
-        // Security: Members must first be Approved by Voting
         public static void AddMemberOfOrg(ByteString orgId, string myName, ByteString? memberId) 
         {
             StorageMap orgMap = new(Storage.CurrentContext, Prefix_Orgs);
@@ -282,10 +276,8 @@ namespace DAOCake
             // Put out to voting
             StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
             var trans = new ProposalTransaction(); 
-            // NEO Syntax note: params must be mapped 1-1 as , declaration fails to record data
             trans.OrgId = orgId;
             trans.User = userId;
-            //tRow.EvidenceCID = memberId;
             trans.RefNo = myName;
             trans.ProposalType = ProposalType.NewMember;
 
@@ -302,8 +294,7 @@ namespace DAOCake
         }
         #endregion
 
-        // Security: User must be a member of the organisation
-        // *** after testing remove passing in User (must be signed?)
+
         public static void Vote(ByteString transId, bool voteFor) 
         {
             var userId = Tx.Sender;
@@ -351,11 +342,11 @@ namespace DAOCake
 
             if (!voteFor)
             {
-                OnVote(transId, userId, trans.OrgId, voteFor, 0, org.VoteForRequired); //org.VoteDecisionCount, 
+                OnVote(transId, userId, trans.OrgId, voteFor, 0, org.VoteForRequired); 
             }
             else
             { 
-                //voteFor
+                // handle voteFor case
                 if (trans.Decision == DecisionStatus.Undecided)
                 {
                     //Tally votes 
@@ -372,7 +363,7 @@ namespace DAOCake
                     OnVote(transId, userId, trans.OrgId, voteFor, (UInt16) votesFor, org.VoteForRequired);
 
                     StorageMap daoMap = new(Storage.CurrentContext, Prefix_Org_Transactions);
-                    if (votesFor >= org.VoteForRequired) // && votes >= org.VoteDecisionCount)
+                    if (votesFor >= org.VoteForRequired) 
                     {
                         // Resolution reached: internal updates to related data
                         trans.Decision = DecisionStatus.Approved;
@@ -381,10 +372,10 @@ namespace DAOCake
                         switch (trans.ProposalType) 
                         {
                             case ProposalType.NewMember:
-                                UpdateMemberAsApproved(trans.OrgId, transId);
+                                updateMemberAsApproved(trans.OrgId, transId);
                                 break;
                             case ProposalType.OrgRules:
-                                UpdateMemberVoteRules(trans.OrgId, (UInt16) trans.Total);
+                                updateMemberVoteRules(trans.OrgId, (UInt16) trans.Total);
                                 break;
                             default:
                                 // Normal work approval: no further action
@@ -399,11 +390,11 @@ namespace DAOCake
 
 
 
-        // Security: User must be a member of the organisation
-        // *** after testing remove passing in User (must be signed?)
-        public static void CreateTransaction(ByteString orgId, UInt160 userId, BigInteger amount, string evidenceCID, string refNo, ByteString? transId)
+        public static void CreateTransaction(ByteString orgId, BigInteger amount, string evidenceCID, string refNo, ByteString? transId)
         {
             var token = Runtime.CallingScriptHash;
+
+            UInt160 userId = Tx.Sender;
 
             if (!IsMemberOfOrg(orgId, userId, MemberQueryType.Approved)) throw new Exception("You can only commit work if you are an Approved member!");
 
@@ -446,7 +437,7 @@ namespace DAOCake
         }
 
 
-        #region Data Retrieval Transactions
+        #region Data Retrieval
 
         [Safe]
         public static Map<ByteString, object> Votes(ByteString transId)
@@ -558,7 +549,7 @@ namespace DAOCake
         }
 
 
-        public static object GetMemberObj(ByteString memberId)
+        internal static object getMemberObj(ByteString memberId)
         {
             StorageMap membersMap = new(Storage.CurrentContext, Prefix_Members);
 
@@ -576,41 +567,9 @@ namespace DAOCake
 
         }
 
-        //if (!Tx.Sender.Equals(owner))
 
-        // Returns an object with human readible attributes
-        public static object GetTransObj(ByteString orgId, ByteString transId)
-        {
-            StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
 
-            var tRow = (ProposalTransaction)StdLib.Deserialize(transMap.Get(transId));
-            OnNewTransaction(transId, tRow.OrgId, tRow.EvidenceCID, tRow.Token, tRow.Total);
-        
-            return tRow;
-        }
-
-        // Returned strings are in base64 and need to be decoded for display e.g.: https://www.base64decode.org/
-        public static Map<string, object> GetTransNotify(ByteString orgId, ByteString transId)
-        {
-            StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
-
-            Map<string, object> sMap = new();
-            {
-                var tRow = (ProposalTransaction)StdLib.Deserialize(transMap.Get(transId));
-                {
-                    sMap["orgId"] = tRow.OrgId;
-                    sMap["user"] = tRow.User;
-                    sMap["proof"] = tRow.EvidenceCID;
-                    sMap["total"] = tRow.Total;
-                    sMap["token"] = tRow.Token;
-                }
-                OnNewTransaction(transId, tRow.OrgId, tRow.EvidenceCID, tRow.Token, tRow.Total);
-
-            }
-            return sMap;
-        }
-
-        internal static Map<ByteString, object> OwingsQuery(QueryType queryType, ByteString orgId, UInt160 user)
+        internal static Map<ByteString, object> owingsQuery(QueryType queryType, ByteString orgId, UInt160 user)
         {
             StorageMap daoMap = new(Storage.CurrentContext, Prefix_Org_Transactions);
             StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
@@ -620,7 +579,6 @@ namespace DAOCake
             foreach (var transId in daoTransactions)
             {
                 var tRow = (ProposalTransaction)StdLib.Deserialize(transMap.Get(transId));
-                //if ((filter != TransactionFilter.None) && !tRow.User.Equals(userId)) continue; 
                 if (queryType == QueryType.User && !tRow.User.Equals(user)) continue; 
  
                 map[transId] = tRow;
@@ -637,7 +595,7 @@ namespace DAOCake
 
             
             Map<ByteString, object> map = new();
-            map = OwingsQuery(QueryType.User, orgId, user);
+            map = owingsQuery(QueryType.User, orgId, user);
            
             return map;
         }
@@ -649,50 +607,8 @@ namespace DAOCake
 
             
             Map<ByteString, object> map = new();
-            map = OwingsQuery(QueryType.None, orgId, null);
+            map = owingsQuery(QueryType.None, orgId, null);
            
-            return map;
-        }
-
-
-        [Safe]
-        public static Map<ByteString, object> Owings(UInt160 orgId)
-        {
-            if (orgId is null || !orgId.IsValid) throw new ArgumentException(nameof(orgId));
-
-            StorageMap orgTransMap = new(Storage.CurrentContext, Prefix_Org_Transactions);
-            StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
-
-            Map<ByteString, object> map = new();
-            var daoTransactions = (Iterator<ByteString>)orgTransMap.Find(orgId, FindOptions.KeysOnly | FindOptions.RemovePrefix);
-            foreach (var transId in daoTransactions)
-            {
-                var tRow = (ProposalTransaction)StdLib.Deserialize(transMap.Get(transId));
-                map[transId] = tRow;
-            }
-            return map;
-        }
-
-        [Safe]
-        public static Map<ByteString, Map<string, object>> OwingsAsStringMap(UInt160 orgId)
-        {
-            //if (seller is null || !seller.IsValid) throw new ArgumentException(nameof(seller));
-
-            StorageMap daoMap = new(Storage.CurrentContext, Prefix_Org_Transactions);
-            StorageMap transMap = new(Storage.CurrentContext, Prefix_Transactions);
-
-            Map<ByteString, Map<string, object>> map = new();
-            var iterator = (Iterator<ByteString>)daoMap.Find(orgId, FindOptions.KeysOnly | FindOptions.RemovePrefix);
-            foreach (var s in iterator)
-            {
-                var tRow = (ProposalTransaction)StdLib.Deserialize(transMap.Get(s));
-                Map<string, object> sMap = new();
-                sMap["user"] = tRow.User;
-                sMap["proof"] = tRow.EvidenceCID;
-                sMap["refno"] = tRow.RefNo;
-                sMap["total"] = tRow.Total;
-                map[s] = sMap;
-            }
             return map;
         }
         #endregion
