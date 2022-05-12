@@ -24,9 +24,4 @@ Contract Script hash: 0xcae42e900cbbb554c3a478201b65bf0266fe2bcf
 
 ## Stay tuned
 
-<img width="1734" alt="DAO Cake App Designs - Sample" src="https://user-images.githubusercontent.com/42083185/167526660-91291a76-e8c9-45d0-9b99-1dda10ff0a2e.png">
-
-
-
-
-
+<img width="1745" alt="Native App Screens - Sample" src="https://user-images.githubusercontent.com/42083185/167973450-19108603-af70-4901-b938-d2fbfc772d8d.png">
